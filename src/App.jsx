@@ -1,0 +1,36 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Games from './pages/Games';
+import GameDetails from './pages/GameDetails';
+import Favorites from './pages/Favorites';
+import CategoryGames from './pages/CategoryGames';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="juegos" element={<Games />} />
+          <Route path="juegos/:id" element={<GameDetails />} />
+          <Route path="favoritos" element={<Favorites />} />
+          <Route path="category/:slug" element={<CategoryGames />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
