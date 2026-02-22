@@ -3,11 +3,11 @@ import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { fetchGames } from '../services/rawg.service';
 import GameCard from '../components/home/GameCard';
 import Pagination from '../components/Pagination';
-import { Layers, ArrowLeft } from 'lucide-react';
+import { Tag, ArrowLeft } from 'lucide-react';
 
 const PAGE_SIZE = 12;
 
-export default function CategoryGames() {
+export default function TagGames() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -17,13 +17,13 @@ export default function CategoryGames() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const title = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Categoría';
+  const title = slug ? slug.replace(/-/g, ' ') : 'Tag';
 
   useEffect(() => {
-    const loadGames = async () => {
+    const load = async () => {
       setLoading(true);
       try {
-        const result = await fetchGames({ genres: slug.toLowerCase(), pageSize: PAGE_SIZE, page });
+        const result = await fetchGames({ tags: slug, pageSize: PAGE_SIZE, page });
         if (result.success) {
           setGames(result.data);
           setCount(result.count || 0);
@@ -31,12 +31,12 @@ export default function CategoryGames() {
           setError(result.error);
         }
       } catch (err) {
-        setError('Error al cargar los juegos de esta categoría.');
+        setError('Error al cargar los juegos de este tag.');
       } finally {
         setLoading(false);
       }
     };
-    if (slug) loadGames();
+    if (slug) load();
   }, [slug, page]);
 
   return (
@@ -45,17 +45,11 @@ export default function CategoryGames() {
         <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors w-fit">
           <ArrowLeft className="mr-2 h-4 w-4" /> Volver al inicio
         </Link>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight capitalize flex items-center gap-3">
-              <Layers className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-              {title}
-            </h1>
-            <p className="text-muted-foreground mt-2 text-lg">
-              Explorando los mejores juegos de {slug}.
-            </p>
-          </div>
-        </div>
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight capitalize flex items-center gap-3">
+          <Tag className="h-8 w-8 text-primary" />
+          {title}
+        </h1>
+        <p className="text-muted-foreground text-lg">Juegos con el tag "{title}".</p>
       </div>
 
       {loading ? (
@@ -66,8 +60,7 @@ export default function CategoryGames() {
         </div>
       ) : error ? (
         <div className="text-center py-20">
-          <p className="text-red-500 text-xl font-bold mb-4">{error}</p>
-          <Link to="/" className="text-primary hover:underline">Volver a intentar</Link>
+          <p className="text-red-500 text-xl font-bold">{error}</p>
         </div>
       ) : (
         <>
@@ -81,17 +74,16 @@ export default function CategoryGames() {
                   rating={game.rating}
                   category={game.genres?.map((g) => g.name).join(' / ')}
                   image={game.background_image}
-                  description={game.description_raw}
-                  color="from-blue-500 to-cyan-500"
+                  color="from-teal-500 to-emerald-500"
                 />
               ))
             ) : (
               <div className="col-span-full text-center py-20">
-                <p className="text-xl text-muted-foreground">No se encontraron juegos en esta categoría.</p>
+                <p className="text-xl text-muted-foreground">No se encontraron juegos con este tag.</p>
               </div>
             )}
           </div>
-          <Pagination count={count} pageSize={PAGE_SIZE} currentPage={page} basePath={`/category/${slug}`} />
+          <Pagination count={count} pageSize={PAGE_SIZE} currentPage={page} basePath={`/tags/${slug}`} />
         </>
       )}
     </div>

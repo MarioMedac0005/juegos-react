@@ -43,6 +43,7 @@ export default function Layout() {
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
               <Link to="/" className="text-foreground/80 hover:text-primary transition-colors">Inicio</Link>
               <Link to="/juegos" className="text-foreground/80 hover:text-primary transition-colors">Explorar</Link>
+              <Link to="/publishers" className="text-foreground/80 hover:text-primary transition-colors">Publishers</Link>
               <Link to="/favoritos" className="text-foreground/80 hover:text-primary transition-colors">Favoritos</Link>
             </nav>
 

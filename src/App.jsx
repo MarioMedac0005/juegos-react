@@ -6,6 +6,9 @@ import Games from './pages/Games';
 import GameDetails from './pages/GameDetails';
 import Favorites from './pages/Favorites';
 import CategoryGames from './pages/CategoryGames';
+import TagGames from './pages/TagGames';
+import Publishers from './pages/Publishers';
+import PublisherDetail from './pages/PublisherDetail';
 
 function App() {
   return (
@@ -27,6 +30,9 @@ function App() {
           <Route path="juegos/:id" element={<GameDetails />} />
           <Route path="favoritos" element={<Favorites />} />
           <Route path="category/:slug" element={<CategoryGames />} />
+          <Route path="tags/:slug" element={<TagGames />} />
+          <Route path="publishers" element={<Publishers />} />
+          <Route path="publishers/:id" element={<PublisherDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

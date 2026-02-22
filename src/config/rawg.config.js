@@ -5,6 +5,9 @@ export const RAWG_ENDPOINTS = {
   games: `${RAWG_BASE_URL}/games`,
   gameDetails: (id) => `${RAWG_BASE_URL}/games/${id}`,
   genres: `${RAWG_BASE_URL}/genres`,
+  tags: `${RAWG_BASE_URL}/tags`,
+  publishers: `${RAWG_BASE_URL}/publishers`,
+  publisherDetails: (id) => `${RAWG_BASE_URL}/publishers/${id}`,
 };
 
 export const RAWG_ORDERING = {
