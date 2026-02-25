@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { fetchGames } from '../services/rawg.service';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGamesThunk } from '../store/gamesSlice';
 import GameCard from '../components/home/GameCard';
 import Pagination from '../components/Pagination';
 import { Layers, ArrowLeft } from 'lucide-react';
@@ -11,33 +12,14 @@ export default function CategoryGames() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
-
-  const [games, setGames] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { items: games, count, loading, error } = useSelector((s) => s.games);
 
   const title = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Categoría';
 
   useEffect(() => {
-    const loadGames = async () => {
-      setLoading(true);
-      try {
-        const result = await fetchGames({ genres: slug.toLowerCase(), pageSize: PAGE_SIZE, page });
-        if (result.success) {
-          setGames(result.data);
-          setCount(result.count || 0);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Error al cargar los juegos de esta categoría.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (slug) loadGames();
-  }, [slug, page]);
+    if (slug) dispatch(fetchGamesThunk({ genres: slug.toLowerCase(), pageSize: PAGE_SIZE, page }));
+  }, [dispatch, slug, page]);
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">

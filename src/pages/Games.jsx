@@ -1,51 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import SearchBar from '../components/SearchBar';
 import GameCard from '../components/home/GameCard';
 import Pagination from '../components/Pagination';
-import { fetchGames } from '../services/rawg.service';
+import { fetchGamesThunk } from '../store/gamesSlice';
 
 const PAGE_SIZE = 12;
 
 export default function Games() {
+  const dispatch = useDispatch();
+  const { items: games, count, loading, error } = useSelector((s) => s.games);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
   const search = searchParams.get('search') || '';
-
-  const [games, setGames] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
-    const loadGames = async () => {
-      setLoading(true);
-      try {
-        const result = await fetchGames({ page, pageSize: PAGE_SIZE, search, ordering: '-added' });
-        if (result.success) {
-          setGames(result.data);
-          setCount(result.count || 0);
-          setError(null);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        console.error('Error al obtener juegos:', err);
-        setError('Ocurrió un error inesperado al cargar los juegos.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadGames();
-  }, [page, search]);
+    dispatch(fetchGamesThunk({ page, pageSize: PAGE_SIZE, search, ordering: '-added' }));
+  }, [dispatch, page, search]);
 
   // Debounce search input → update URL
   useEffect(() => {
     const id = setTimeout(() => {
       const newParams = {};
       if (searchInput) newParams.search = searchInput;
-      newParams.page = '1'; // reset to page 1 on new search
+      newParams.page = '1';
       setSearchParams(newParams);
     }, 500);
     return () => clearTimeout(id);

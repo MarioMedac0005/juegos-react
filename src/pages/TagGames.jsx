@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { fetchGames } from '../services/rawg.service';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGamesThunk } from '../store/gamesSlice';
 import GameCard from '../components/home/GameCard';
 import Pagination from '../components/Pagination';
 import { Tag, ArrowLeft } from 'lucide-react';
@@ -11,33 +12,14 @@ export default function TagGames() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
-
-  const [games, setGames] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { items: games, count, loading, error } = useSelector((s) => s.games);
 
   const title = slug ? slug.replace(/-/g, ' ') : 'Tag';
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const result = await fetchGames({ tags: slug, pageSize: PAGE_SIZE, page });
-        if (result.success) {
-          setGames(result.data);
-          setCount(result.count || 0);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Error al cargar los juegos de este tag.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (slug) load();
-  }, [slug, page]);
+    if (slug) dispatch(fetchGamesThunk({ tags: slug, pageSize: PAGE_SIZE, page }));
+  }, [dispatch, slug, page]);
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">

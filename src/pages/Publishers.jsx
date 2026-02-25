@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { fetchPublishers } from '../services/rawg.service';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPublishersThunk } from '../store/gamesSlice';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import { Building2, Gamepad2 } from 'lucide-react';
@@ -8,36 +9,17 @@ import { Building2, Gamepad2 } from 'lucide-react';
 const PAGE_SIZE = 20;
 
 export default function Publishers() {
+  const dispatch = useDispatch();
+  const { publishers, publishersCount: count, loading, error } = useSelector((s) => s.games);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
   const search = searchParams.get('search') || '';
-
-  const [publishers, setPublishers] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const result = await fetchPublishers({ page, pageSize: PAGE_SIZE, search });
-        if (result.success) {
-          setPublishers(result.data);
-          setCount(result.count || 0);
-          setError(null);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Error al cargar los publishers.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [page, search]);
+    dispatch(fetchPublishersThunk({ page, pageSize: PAGE_SIZE, search }));
+  }, [dispatch, page, search]);
 
   // Debounce search → update URL
   useEffect(() => {

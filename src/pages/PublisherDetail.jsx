@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { fetchPublisherDetails, fetchGames } from '../services/rawg.service';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPublisherDetailsThunk, fetchGamesThunk } from '../store/gamesSlice';
 import GameCard from '../components/home/GameCard';
 import Pagination from '../components/Pagination';
-import { ArrowLeft, Building2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Building2 } from 'lucide-react';
 
 const PAGE_SIZE = 12;
 
@@ -11,36 +12,15 @@ export default function PublisherDetail() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
-
-  const [publisher, setPublisher] = useState(null);
-  const [games, setGames] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { publisherDetail: publisher, items: games, count, loading, error } = useSelector((s) => s.games);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [pubResult, gamesResult] = await Promise.all([
-          fetchPublisherDetails(id),
-          fetchGames({ publishers: id, pageSize: PAGE_SIZE, page }),
-        ]);
-        if (pubResult.success) setPublisher(pubResult.data);
-        else setError(pubResult.error);
-
-        if (gamesResult.success) {
-          setGames(gamesResult.data);
-          setCount(gamesResult.count || 0);
-        }
-      } catch (err) {
-        setError('Error al cargar el publisher.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) load();
-  }, [id, page]);
+    if (id) {
+      dispatch(fetchPublisherDetailsThunk(id));
+      dispatch(fetchGamesThunk({ publishers: id, pageSize: PAGE_SIZE, page }));
+    }
+  }, [dispatch, id, page]);
 
   if (loading) {
     return (

@@ -1,50 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchGameDetails } from '../services/rawg.service';
+import { useDispatch, useSelector } from 'react-redux';
 import { Heart, Calendar, Gamepad2, Star, ArrowLeft, Tag, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { fetchGameDetailsThunk, clearDetail } from '../store/gamesSlice';
+import { toggleFavorite } from '../store/favoritesSlice';
 
 export default function GameDetails() {
   const { id } = useParams();
-  const [game, setGame] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const dispatch = useDispatch();
+  const { detail: game, loading, error } = useSelector((s) => s.games);
+  const { favoriteIds } = useSelector((s) => s.favorites);
+  const isFavorite = game ? favoriteIds.includes(game.id) : false;
 
   useEffect(() => {
-    const loadGameDetails = async () => {
-      setLoading(true);
-      try {
-        const result = await fetchGameDetails(id);
-        if (result.success) {
-          setGame(result.data);
-          const favorites = JSON.parse(localStorage.getItem('favoriteGames') || '[]');
-          setIsFavorite(favorites.includes(result.data.id));
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('Error inesperado al cargar los detalles.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) loadGameDetails();
-  }, [id]);
+    if (id) dispatch(fetchGameDetailsThunk(id));
+    return () => { dispatch(clearDetail()); };
+  }, [dispatch, id]);
 
-  const toggleFavorite = () => {
+  const handleToggleFavorite = () => {
     if (!game) return;
-    const favorites = JSON.parse(localStorage.getItem('favoriteGames') || '[]');
-    let newFavorites;
+    dispatch(toggleFavorite(game.id));
     if (isFavorite) {
-      newFavorites = favorites.filter((favId) => favId !== game.id);
       toast.success('Eliminado de favoritos');
     } else {
-      newFavorites = [...favorites, game.id];
       toast.success('Añadido a favoritos');
     }
-    localStorage.setItem('favoriteGames', JSON.stringify(newFavorites));
-    setIsFavorite(!isFavorite);
   };
 
   if (loading) {
@@ -83,7 +64,6 @@ export default function GameDetails() {
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mb-2">
             {game.name}
           </h1>
-          {/* Genres - clickable */}
           <div className="flex flex-wrap gap-3 items-center">
             {game.genres?.map((genre) => (
               <Link
@@ -110,7 +90,6 @@ export default function GameDetails() {
               />
             </div>
 
-            {/* Tags Section */}
             {game.tags && game.tags.length > 0 && (
               <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -130,7 +109,6 @@ export default function GameDetails() {
               </div>
             )}
 
-            {/* Gallery */}
             {game.background_image_additional && (
               <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                 <h2 className="text-2xl font-bold mb-4">Galería</h2>
@@ -211,7 +189,7 @@ export default function GameDetails() {
 
               {/* Favorite button */}
               <button
-                onClick={toggleFavorite}
+                onClick={handleToggleFavorite}
                 className={`w-full flex items-center justify-center py-3 rounded-lg font-bold transition-all duration-300 ${
                   isFavorite
                     ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
